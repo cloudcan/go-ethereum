@@ -21,9 +21,9 @@ import (
 	"hash"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/cloudcan/go-ethereum/common"
+	"github.com/cloudcan/go-ethereum/common/math"
+	"github.com/cloudcan/go-ethereum/log"
 )
 
 // Config are the configuration options for the Interpreter

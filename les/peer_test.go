@@ -21,15 +21,15 @@ import (
 	"net"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/les/flowcontrol"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/cloudcan/go-ethereum/common"
+	"github.com/cloudcan/go-ethereum/common/mclock"
+	"github.com/cloudcan/go-ethereum/core/rawdb"
+	"github.com/cloudcan/go-ethereum/crypto"
+	"github.com/cloudcan/go-ethereum/eth"
+	"github.com/cloudcan/go-ethereum/les/flowcontrol"
+	"github.com/cloudcan/go-ethereum/p2p"
+	"github.com/cloudcan/go-ethereum/p2p/enode"
+	"github.com/cloudcan/go-ethereum/rlp"
 )
 
 const protocolVersion = lpv2

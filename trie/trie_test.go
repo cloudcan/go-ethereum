@@ -28,13 +28,13 @@ import (
 	"testing"
 	"testing/quick"
 
+	"github.com/cloudcan/go-ethereum/common"
+	"github.com/cloudcan/go-ethereum/crypto"
+	"github.com/cloudcan/go-ethereum/ethdb"
+	"github.com/cloudcan/go-ethereum/ethdb/leveldb"
+	"github.com/cloudcan/go-ethereum/ethdb/memorydb"
+	"github.com/cloudcan/go-ethereum/rlp"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/ethdb/leveldb"
-	"github.com/ethereum/go-ethereum/ethdb/memorydb"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func init() {

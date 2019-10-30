@@ -27,7 +27,7 @@ import Icon from '@material-ui/core/Icon';
 import Transition from 'react-transition-group/Transition';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
-import {MENU, DURATION} from '../common';
+import {DURATION, MENU} from '../common';
 
 // styles contains the constant styles of the component.
 const styles = {

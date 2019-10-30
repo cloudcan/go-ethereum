@@ -25,11 +25,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/enr"
+	"github.com/cloudcan/go-ethereum/common/mclock"
+	"github.com/cloudcan/go-ethereum/crypto"
+	"github.com/cloudcan/go-ethereum/log"
+	"github.com/cloudcan/go-ethereum/p2p/enode"
+	"github.com/cloudcan/go-ethereum/p2p/enr"
 	lru "github.com/hashicorp/golang-lru"
 )
 

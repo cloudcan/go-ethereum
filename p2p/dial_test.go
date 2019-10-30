@@ -24,12 +24,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cloudcan/go-ethereum/internal/testlog"
+	"github.com/cloudcan/go-ethereum/log"
+	"github.com/cloudcan/go-ethereum/p2p/enode"
+	"github.com/cloudcan/go-ethereum/p2p/enr"
+	"github.com/cloudcan/go-ethereum/p2p/netutil"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/ethereum/go-ethereum/internal/testlog"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/enr"
-	"github.com/ethereum/go-ethereum/p2p/netutil"
 )
 
 func init() {

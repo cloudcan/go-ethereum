@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-import {faHome, faLink, faGlobeEurope, faTachometerAlt, faList} from '@fortawesome/free-solid-svg-icons';
+import {faGlobeEurope, faHome, faLink, faList, faTachometerAlt} from '@fortawesome/free-solid-svg-icons';
 import {faCreditCard} from '@fortawesome/free-regular-svg-icons';
 
 type ProvidedMenuProp = {|title: string, icon: string|};

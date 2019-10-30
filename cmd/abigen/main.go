@@ -23,11 +23,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/common/compiler"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/cloudcan/go-ethereum/accounts/abi/bind"
+	"github.com/cloudcan/go-ethereum/cmd/utils"
+	"github.com/cloudcan/go-ethereum/common/compiler"
+	"github.com/cloudcan/go-ethereum/crypto"
+	"github.com/cloudcan/go-ethereum/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

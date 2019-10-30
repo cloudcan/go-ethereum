@@ -29,7 +29,7 @@ import Label from 'recharts/es6/component/Label';
 import Tooltip from 'recharts/es6/component/Tooltip';
 
 import ChartRow from 'ChartRow';
-import CustomTooltip, {bytePlotter, bytePerSecPlotter, percentPlotter, multiplier} from 'CustomTooltip';
+import CustomTooltip, {bytePerSecPlotter, bytePlotter, multiplier, percentPlotter} from 'CustomTooltip';
 import {chartStrokeWidth, styles as commonStyles} from '../common';
 import type {General, System} from '../types/content';
 
@@ -193,7 +193,7 @@ class Footer extends Component<Props, State> {
 						<Typography type='caption' color='inherit'>
 							<span style={commonStyles.light}>{'Commit '}</span>
 							<a
-								href={`https://github.com/ethereum/go-ethereum/commit/${general.commit}`}
+								href={`https://github.com/cloudcan/go-ethereum/commit/${general.commit}`}
 								target='_blank'
 								rel='noopener noreferrer'
 								style={styles.link}
