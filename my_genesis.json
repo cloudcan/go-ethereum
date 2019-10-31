@@ -1,9 +1,6 @@
 {
   "config": {
-    "chainId": 233,
-    "homesteadBlock": 0,
-    "eip155Block": 0,
-    "eip158Block": 0
+    "chainId": 233
   },
   "difficulty": "200",
   "gasLimit": "210000",

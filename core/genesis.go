@@ -302,9 +302,9 @@ func (g *Genesis) Commit(db ethdb.Database) (*types.Block, error) {
 	if config == nil {
 		config = params.AllEthashProtocolChanges
 	}
-	if err := config.CheckConfigForkOrder(); err != nil {
-		return nil, err
-	}
+	//if err := config.CheckConfigForkOrder(); err != nil {
+	//	return nil, err
+	//}
 	rawdb.WriteTd(db, block.Hash(), block.NumberU64(), g.Difficulty)
 	rawdb.WriteBlock(db, block)
 	rawdb.WriteReceipts(db, block.Hash(), block.NumberU64(), nil)
