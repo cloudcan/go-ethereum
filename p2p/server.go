@@ -465,15 +465,17 @@ func (srv *Server) Start() (err error) {
 	srv.removetrusted = make(chan *enode.Node)
 	srv.peerOp = make(chan peerOpFunc)
 	srv.peerOpDone = make(chan struct{})
-
+	// 设置本地节点
 	if err := srv.setupLocalNode(); err != nil {
 		return err
 	}
+	// 设置监听
 	if srv.ListenAddr != "" {
 		if err := srv.setupListening(); err != nil {
 			return err
 		}
 	}
+	// 设置节点发现
 	if err := srv.setupDiscovery(); err != nil {
 		return err
 	}
