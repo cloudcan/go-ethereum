@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/cloudcan/go-ethereum/common"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/eth/downloader"
 	"github.com/cloudcan/go-ethereum/eth/gasprice"
@@ -18,28 +17,28 @@ import (
 // MarshalTOML marshals as TOML.
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
-		Genesis                 *core.Genesis `toml:",omitempty"`
-		NetworkId               uint64
-		SyncMode                downloader.SyncMode
-		NoPruning               bool
-		NoPrefetch              bool
-		Whitelist               map[uint64]common.Hash `toml:"-"`
-		LightServ               int                    `toml:",omitempty"`
-		LightIngress            int                    `toml:",omitempty"`
-		LightEgress             int                    `toml:",omitempty"`
-		LightPeers              int                    `toml:",omitempty"`
-		UltraLightServers       []string               `toml:",omitempty"`
-		UltraLightFraction      int                    `toml:",omitempty"`
-		UltraLightOnlyAnnounce  bool                   `toml:",omitempty"`
-		SkipBcVersionCheck      bool                   `toml:"-"`
-		DatabaseHandles         int                    `toml:"-"`
-		DatabaseCache           int
-		DatabaseFreezer         string
-		TrieCleanCache          int
-		TrieDirtyCache          int
-		TrieTimeout             time.Duration
-		Miner                   miner.Config
-		Ethash                  ethash.Config
+		Genesis                *core.Genesis `toml:",omitempty"`
+		NetworkId              uint64
+		SyncMode               downloader.SyncMode
+		NoPruning              bool
+		NoPrefetch             bool
+		Whitelist              map[uint64]common.Hash `toml:"-"`
+		LightServ              int                    `toml:",omitempty"`
+		LightIngress           int                    `toml:",omitempty"`
+		LightEgress            int                    `toml:",omitempty"`
+		LightPeers             int                    `toml:",omitempty"`
+		UltraLightServers      []string               `toml:",omitempty"`
+		UltraLightFraction     int                    `toml:",omitempty"`
+		UltraLightOnlyAnnounce bool                   `toml:",omitempty"`
+		SkipBcVersionCheck     bool                   `toml:"-"`
+		DatabaseHandles        int                    `toml:"-"`
+		DatabaseCache          int
+		DatabaseFreezer        string
+		TrieCleanCache         int
+		TrieDirtyCache         int
+		TrieTimeout            time.Duration
+		Miner                  miner.Config
+		//Ethash                  ethash.Config
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
@@ -72,7 +71,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TrieDirtyCache = c.TrieDirtyCache
 	enc.TrieTimeout = c.TrieTimeout
 	enc.Miner = c.Miner
-	enc.Ethash = c.Ethash
+	//enc.Ethash = c.Ethash
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
@@ -88,28 +87,28 @@ func (c Config) MarshalTOML() (interface{}, error) {
 // UnmarshalTOML unmarshals from TOML.
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
-		Genesis                 *core.Genesis `toml:",omitempty"`
-		NetworkId               *uint64
-		SyncMode                *downloader.SyncMode
-		NoPruning               *bool
-		NoPrefetch              *bool
-		Whitelist               map[uint64]common.Hash `toml:"-"`
-		LightServ               *int                   `toml:",omitempty"`
-		LightIngress            *int                   `toml:",omitempty"`
-		LightEgress             *int                   `toml:",omitempty"`
-		LightPeers              *int                   `toml:",omitempty"`
-		UltraLightServers       []string               `toml:",omitempty"`
-		UltraLightFraction      *int                   `toml:",omitempty"`
-		UltraLightOnlyAnnounce  *bool                  `toml:",omitempty"`
-		SkipBcVersionCheck      *bool                  `toml:"-"`
-		DatabaseHandles         *int                   `toml:"-"`
-		DatabaseCache           *int
-		DatabaseFreezer         *string
-		TrieCleanCache          *int
-		TrieDirtyCache          *int
-		TrieTimeout             *time.Duration
-		Miner                   *miner.Config
-		Ethash                  *ethash.Config
+		Genesis                *core.Genesis `toml:",omitempty"`
+		NetworkId              *uint64
+		SyncMode               *downloader.SyncMode
+		NoPruning              *bool
+		NoPrefetch             *bool
+		Whitelist              map[uint64]common.Hash `toml:"-"`
+		LightServ              *int                   `toml:",omitempty"`
+		LightIngress           *int                   `toml:",omitempty"`
+		LightEgress            *int                   `toml:",omitempty"`
+		LightPeers             *int                   `toml:",omitempty"`
+		UltraLightServers      []string               `toml:",omitempty"`
+		UltraLightFraction     *int                   `toml:",omitempty"`
+		UltraLightOnlyAnnounce *bool                  `toml:",omitempty"`
+		SkipBcVersionCheck     *bool                  `toml:"-"`
+		DatabaseHandles        *int                   `toml:"-"`
+		DatabaseCache          *int
+		DatabaseFreezer        *string
+		TrieCleanCache         *int
+		TrieDirtyCache         *int
+		TrieTimeout            *time.Duration
+		Miner                  *miner.Config
+		//Ethash                  *ethash.Config
 		TxPool                  *core.TxPoolConfig
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
@@ -187,9 +186,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.Miner != nil {
 		c.Miner = *dec.Miner
 	}
-	if dec.Ethash != nil {
-		c.Ethash = *dec.Ethash
-	}
+	//if dec.Ethash != nil {
+	//	c.Ethash = *dec.Ethash
+	//}
 	if dec.TxPool != nil {
 		c.TxPool = *dec.TxPool
 	}

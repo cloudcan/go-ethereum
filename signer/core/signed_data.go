@@ -35,7 +35,6 @@ import (
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/common/hexutil"
 	"github.com/cloudcan/go-ethereum/common/math"
-	"github.com/cloudcan/go-ethereum/consensus/clique"
 	"github.com/cloudcan/go-ethereum/core/types"
 	"github.com/cloudcan/go-ethereum/crypto"
 	"github.com/cloudcan/go-ethereum/rlp"
@@ -245,20 +244,20 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 			header.Extra = newExtra
 		}
 		// Get back the rlp data, encoded by us
-		sighash, cliqueRlp, err := cliqueHeaderHashAndRlp(header)
-		if err != nil {
-			return nil, useEthereumV, err
-		}
-		messages := []*NameValueType{
-			{
-				Name:  "Clique header",
-				Typ:   "clique",
-				Value: fmt.Sprintf("clique header %d [0x%x]", header.Number, header.Hash()),
-			},
-		}
-		// Clique uses V on the form 0 or 1
-		useEthereumV = false
-		req = &SignDataRequest{ContentType: mediaType, Rawdata: cliqueRlp, Messages: messages, Hash: sighash}
+		//sighash, cliqueRlp, err := cliqueHeaderHashAndRlp(header)
+		//if err != nil {
+		//	return nil, useEthereumV, err
+		//}
+		//messages := []*NameValueType{
+		//	{
+		//		Name:  "Clique header",
+		//		Typ:   "clique",
+		//		Value: fmt.Sprintf("clique header %d [0x%x]", header.Number, header.Hash()),
+		//	},
+		//}
+		//// Clique uses V on the form 0 or 1
+		//useEthereumV = false
+		//req = &SignDataRequest{ContentType: mediaType, Rawdata: cliqueRlp, Messages: messages, Hash: sighash}
 	default: // also case TextPlain.Mime:
 		// Calculates an Ethereum ECDSA signature for:
 		// hash = keccak256("\x19${byteVersion}Ethereum Signed Message:\n${message length}${message}")
@@ -301,15 +300,15 @@ func SignTextValidator(validatorData ValidatorData) (hexutil.Bytes, string) {
 // The method requires the extra data to be at least 65 bytes -- the original implementation
 // in clique.go panics if this is the case, thus it's been reimplemented here to avoid the panic
 // and simply return an error instead
-func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) {
-	if len(header.Extra) < 65 {
-		err = fmt.Errorf("clique header extradata too short, %d < 65", len(header.Extra))
-		return
-	}
-	rlp = clique.CliqueRLP(header)
-	hash = clique.SealHash(header).Bytes()
-	return hash, rlp, err
-}
+//func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) {
+//	if len(header.Extra) < 65 {
+//		err = fmt.Errorf("clique header extradata too short, %d < 65", len(header.Extra))
+//		return
+//	}
+//	rlp = clique.CliqueRLP(header)
+//	hash = clique.SealHash(header).Bytes()
+//	return hash, rlp, err
+//}
 
 // SignTypedData signs EIP-712 conformant typed data
 // hash = keccak256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")

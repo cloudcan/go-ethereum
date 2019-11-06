@@ -37,8 +37,6 @@ import (
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/common/fdlimit"
 	"github.com/cloudcan/go-ethereum/consensus"
-	"github.com/cloudcan/go-ethereum/consensus/clique"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/core/vm"
 	"github.com/cloudcan/go-ethereum/crypto"
@@ -293,35 +291,35 @@ var (
 		Value: dashboard.DefaultConfig.Refresh,
 	}
 	// Ethash settings
-	EthashCacheDirFlag = DirectoryFlag{
-		Name:  "ethash.cachedir",
-		Usage: "Directory to store the ethash verification caches (default = inside the datadir)",
-	}
-	EthashCachesInMemoryFlag = cli.IntFlag{
-		Name:  "ethash.cachesinmem",
-		Usage: "Number of recent ethash caches to keep in memory (16MB each)",
-		Value: eth.DefaultConfig.Ethash.CachesInMem,
-	}
-	EthashCachesOnDiskFlag = cli.IntFlag{
-		Name:  "ethash.cachesondisk",
-		Usage: "Number of recent ethash caches to keep on disk (16MB each)",
-		Value: eth.DefaultConfig.Ethash.CachesOnDisk,
-	}
-	EthashDatasetDirFlag = DirectoryFlag{
-		Name:  "ethash.dagdir",
-		Usage: "Directory to store the ethash mining DAGs",
-		Value: DirectoryString(eth.DefaultConfig.Ethash.DatasetDir),
-	}
-	EthashDatasetsInMemoryFlag = cli.IntFlag{
-		Name:  "ethash.dagsinmem",
-		Usage: "Number of recent ethash mining DAGs to keep in memory (1+GB each)",
-		Value: eth.DefaultConfig.Ethash.DatasetsInMem,
-	}
-	EthashDatasetsOnDiskFlag = cli.IntFlag{
-		Name:  "ethash.dagsondisk",
-		Usage: "Number of recent ethash mining DAGs to keep on disk (1+GB each)",
-		Value: eth.DefaultConfig.Ethash.DatasetsOnDisk,
-	}
+	//EthashCacheDirFlag = DirectoryFlag{
+	//	Name:  "ethash.cachedir",
+	//	Usage: "Directory to store the ethash verification caches (default = inside the datadir)",
+	//}
+	//EthashCachesInMemoryFlag = cli.IntFlag{
+	//	Name:  "ethash.cachesinmem",
+	//	Usage: "Number of recent ethash caches to keep in memory (16MB each)",
+	//	Value: eth.DefaultConfig.Ethash.CachesInMem,
+	//}
+	//EthashCachesOnDiskFlag = cli.IntFlag{
+	//	Name:  "ethash.cachesondisk",
+	//	Usage: "Number of recent ethash caches to keep on disk (16MB each)",
+	//	Value: eth.DefaultConfig.Ethash.CachesOnDisk,
+	//}
+	//EthashDatasetDirFlag = DirectoryFlag{
+	//	Name:  "ethash.dagdir",
+	//	Usage: "Directory to store the ethash mining DAGs",
+	//	Value: DirectoryString(eth.DefaultConfig.Ethash.DatasetDir),
+	//}
+	//EthashDatasetsInMemoryFlag = cli.IntFlag{
+	//	Name:  "ethash.dagsinmem",
+	//	Usage: "Number of recent ethash mining DAGs to keep in memory (1+GB each)",
+	//	Value: eth.DefaultConfig.Ethash.DatasetsInMem,
+	//}
+	//EthashDatasetsOnDiskFlag = cli.IntFlag{
+	//	Name:  "ethash.dagsondisk",
+	//	Usage: "Number of recent ethash mining DAGs to keep on disk (1+GB each)",
+	//	Value: eth.DefaultConfig.Ethash.DatasetsOnDisk,
+	//}
 	// Transaction pool settings
 	TxPoolLocalsFlag = cli.StringFlag{
 		Name:  "txpool.locals",
@@ -1287,24 +1285,24 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 }
 
 func setEthash(ctx *cli.Context, cfg *eth.Config) {
-	if ctx.GlobalIsSet(EthashCacheDirFlag.Name) {
-		cfg.Ethash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
-	}
-	if ctx.GlobalIsSet(EthashDatasetDirFlag.Name) {
-		cfg.Ethash.DatasetDir = ctx.GlobalString(EthashDatasetDirFlag.Name)
-	}
-	if ctx.GlobalIsSet(EthashCachesInMemoryFlag.Name) {
-		cfg.Ethash.CachesInMem = ctx.GlobalInt(EthashCachesInMemoryFlag.Name)
-	}
-	if ctx.GlobalIsSet(EthashCachesOnDiskFlag.Name) {
-		cfg.Ethash.CachesOnDisk = ctx.GlobalInt(EthashCachesOnDiskFlag.Name)
-	}
-	if ctx.GlobalIsSet(EthashDatasetsInMemoryFlag.Name) {
-		cfg.Ethash.DatasetsInMem = ctx.GlobalInt(EthashDatasetsInMemoryFlag.Name)
-	}
-	if ctx.GlobalIsSet(EthashDatasetsOnDiskFlag.Name) {
-		cfg.Ethash.DatasetsOnDisk = ctx.GlobalInt(EthashDatasetsOnDiskFlag.Name)
-	}
+	//if ctx.GlobalIsSet(EthashCacheDirFlag.Name) {
+	//	cfg.Ethash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
+	//}
+	//if ctx.GlobalIsSet(EthashDatasetDirFlag.Name) {
+	//	cfg.Ethash.DatasetDir = ctx.GlobalString(EthashDatasetDirFlag.Name)
+	//}
+	//if ctx.GlobalIsSet(EthashCachesInMemoryFlag.Name) {
+	//	cfg.Ethash.CachesInMem = ctx.GlobalInt(EthashCachesInMemoryFlag.Name)
+	//}
+	//if ctx.GlobalIsSet(EthashCachesOnDiskFlag.Name) {
+	//	cfg.Ethash.CachesOnDisk = ctx.GlobalInt(EthashCachesOnDiskFlag.Name)
+	//}
+	//if ctx.GlobalIsSet(EthashDatasetsInMemoryFlag.Name) {
+	//	cfg.Ethash.DatasetsInMem = ctx.GlobalInt(EthashDatasetsInMemoryFlag.Name)
+	//}
+	//if ctx.GlobalIsSet(EthashDatasetsOnDiskFlag.Name) {
+	//	cfg.Ethash.DatasetsOnDisk = ctx.GlobalInt(EthashDatasetsOnDiskFlag.Name)
+	//}
 }
 
 func setMiner(ctx *cli.Context, cfg *miner.Config) {
@@ -1486,21 +1484,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 
 	// Override any default configs for hard coded networks.
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 3
-		}
-		cfg.Genesis = core.DefaultTestnetGenesisBlock()
-	case ctx.GlobalBool(RinkebyFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 4
-		}
-		cfg.Genesis = core.DefaultRinkebyGenesisBlock()
-	case ctx.GlobalBool(GoerliFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 5
-		}
-		cfg.Genesis = core.DefaultGoerliGenesisBlock()
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 1337
@@ -1671,12 +1654,6 @@ func MakeChainDatabase(ctx *cli.Context, stack *node.Node) ethdb.Database {
 func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	var genesis *core.Genesis
 	switch {
-	case ctx.GlobalBool(TestnetFlag.Name):
-		genesis = core.DefaultTestnetGenesisBlock()
-	case ctx.GlobalBool(RinkebyFlag.Name):
-		genesis = core.DefaultRinkebyGenesisBlock()
-	case ctx.GlobalBool(GoerliFlag.Name):
-		genesis = core.DefaultGoerliGenesisBlock()
 	case ctx.GlobalBool(DeveloperFlag.Name):
 		Fatalf("Developer chains are ephemeral")
 	}
@@ -1692,21 +1669,21 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 		Fatalf("%v", err)
 	}
 	var engine consensus.Engine
-	if config.Clique != nil {
-		engine = clique.New(config.Clique, chainDb)
-	} else {
-		engine = ethash.NewFaker()
-		if !ctx.GlobalBool(FakePoWFlag.Name) {
-			engine = ethash.New(ethash.Config{
-				CacheDir:       stack.ResolvePath(eth.DefaultConfig.Ethash.CacheDir),
-				CachesInMem:    eth.DefaultConfig.Ethash.CachesInMem,
-				CachesOnDisk:   eth.DefaultConfig.Ethash.CachesOnDisk,
-				DatasetDir:     stack.ResolvePath(eth.DefaultConfig.Ethash.DatasetDir),
-				DatasetsInMem:  eth.DefaultConfig.Ethash.DatasetsInMem,
-				DatasetsOnDisk: eth.DefaultConfig.Ethash.DatasetsOnDisk,
-			}, nil, false)
-		}
-	}
+	//if config.Clique != nil {
+	//	engine = clique.New(config.Clique, chainDb)
+	//} else {
+	//	engine = ethash.NewFaker()
+	//	if !ctx.GlobalBool(FakePoWFlag.Name) {
+	//		engine = ethash.New(ethash.Config{
+	//			CacheDir:       stack.ResolvePath(eth.DefaultConfig.Ethash.CacheDir),
+	//			CachesInMem:    eth.DefaultConfig.Ethash.CachesInMem,
+	//			CachesOnDisk:   eth.DefaultConfig.Ethash.CachesOnDisk,
+	//			DatasetDir:     stack.ResolvePath(eth.DefaultConfig.Ethash.DatasetDir),
+	//			DatasetsInMem:  eth.DefaultConfig.Ethash.DatasetsInMem,
+	//			DatasetsOnDisk: eth.DefaultConfig.Ethash.DatasetsOnDisk,
+	//		}, nil, false)
+	//	}
+	//}
 	if gcmode := ctx.GlobalString(GCModeFlag.Name); gcmode != "full" && gcmode != "archive" {
 		Fatalf("--%s must be either 'full' or 'archive'", GCModeFlag.Name)
 	}

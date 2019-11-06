@@ -20,12 +20,9 @@ import (
 	"math/big"
 	"os"
 	"os/user"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/cloudcan/go-ethereum/common"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/eth/downloader"
 	"github.com/cloudcan/go-ethereum/eth/gasprice"
@@ -36,13 +33,13 @@ import (
 // DefaultConfig contains default settings for use on the Ethereum main net.
 var DefaultConfig = Config{
 	SyncMode: downloader.FastSync,
-	Ethash: ethash.Config{
-		CacheDir:       "ethash",
-		CachesInMem:    2,
-		CachesOnDisk:   3,
-		DatasetsInMem:  1,
-		DatasetsOnDisk: 2,
-	},
+	//Ethash: ethash.Config{
+	//	CacheDir:       "ethash",
+	//	CachesInMem:    2,
+	//	CachesOnDisk:   3,
+	//	DatasetsInMem:  1,
+	//	DatasetsOnDisk: 2,
+	//},
 	NetworkId:          1,
 	LightPeers:         100,
 	UltraLightFraction: 75,
@@ -70,18 +67,18 @@ func init() {
 			home = user.HomeDir
 		}
 	}
-	if runtime.GOOS == "darwin" {
-		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "Library", "Ethash")
-	} else if runtime.GOOS == "windows" {
-		localappdata := os.Getenv("LOCALAPPDATA")
-		if localappdata != "" {
-			DefaultConfig.Ethash.DatasetDir = filepath.Join(localappdata, "Ethash")
-		} else {
-			DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "AppData", "Local", "Ethash")
-		}
-	} else {
-		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, ".ethash")
-	}
+	//if runtime.GOOS == "darwin" {
+	//	DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "Library", "Ethash")
+	//} else if runtime.GOOS == "windows" {
+	//	localappdata := os.Getenv("LOCALAPPDATA")
+	//	if localappdata != "" {
+	//		DefaultConfig.Ethash.DatasetDir = filepath.Join(localappdata, "Ethash")
+	//	} else {
+	//		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "AppData", "Local", "Ethash")
+	//	}
+	//} else {
+	//	DefaultConfig.Ethash.DatasetDir = filepath.Join(home, ".ethash")
+	//}
 }
 
 //go:generate gencodec -type Config -formats toml -out gen_config.go
@@ -126,7 +123,6 @@ type Config struct {
 	Miner miner.Config
 
 	// Ethash options
-	Ethash ethash.Config
 
 	// Transaction pool options
 	TxPool core.TxPoolConfig

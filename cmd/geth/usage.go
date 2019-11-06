@@ -106,14 +106,14 @@ var AppHelpFlagGroups = []flagGroup{
 		},
 	},
 	{
-		Name: "ETHASH",
+		Name:  "ETHASH",
 		Flags: []cli.Flag{
-			utils.EthashCacheDirFlag,
-			utils.EthashCachesInMemoryFlag,
-			utils.EthashCachesOnDiskFlag,
-			utils.EthashDatasetDirFlag,
-			utils.EthashDatasetsInMemoryFlag,
-			utils.EthashDatasetsOnDiskFlag,
+			//utils.EthashCacheDirFlag,
+			//utils.EthashCachesInMemoryFlag,
+			//utils.EthashCachesOnDiskFlag,
+			//utils.EthashDatasetDirFlag,
+			//utils.EthashDatasetsInMemoryFlag,
+			//utils.EthashDatasetsOnDiskFlag,
 		},
 	},
 	//{

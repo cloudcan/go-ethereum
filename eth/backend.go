@@ -20,6 +20,7 @@ package eth
 import (
 	"errors"
 	"fmt"
+	"github.com/cloudcan/go-ethereum/consensus/alien"
 	"math/big"
 	"runtime"
 	"sync"
@@ -30,8 +31,6 @@ import (
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/common/hexutil"
 	"github.com/cloudcan/go-ethereum/consensus"
-	"github.com/cloudcan/go-ethereum/consensus/clique"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/core/bloombits"
 	"github.com/cloudcan/go-ethereum/core/rawdb"
@@ -135,6 +134,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 设置创世块 TODO
 	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis, config.OverrideIstanbul)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
@@ -146,7 +146,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		chainDb:        chainDb,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, chainConfig, &config.Ethash, config.Miner.Notify, config.Miner.Noverify, chainDb),
+		engine:         CreateConsensusEngine(chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		gasPrice:       config.Miner.GasPrice,
@@ -242,34 +242,9 @@ func makeExtraData(extra []byte) []byte {
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
-func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainConfig, config *ethash.Config, notify []string, noverify bool, db ethdb.Database) consensus.Engine {
-	// If proof-of-authority is requested, set it up
-	if chainConfig.Clique != nil {
-		return clique.New(chainConfig.Clique, db)
-	}
-	// Otherwise assume proof-of-work
-	switch config.PowMode {
-	case ethash.ModeFake:
-		log.Warn("Ethash used in fake mode")
-		return ethash.NewFaker()
-	case ethash.ModeTest:
-		log.Warn("Ethash used in test mode")
-		return ethash.NewTester(nil, noverify)
-	case ethash.ModeShared:
-		log.Warn("Ethash used in shared mode")
-		return ethash.NewShared()
-	default:
-		engine := ethash.New(ethash.Config{
-			CacheDir:       ctx.ResolvePath(config.CacheDir),
-			CachesInMem:    config.CachesInMem,
-			CachesOnDisk:   config.CachesOnDisk,
-			DatasetDir:     config.DatasetDir,
-			DatasetsInMem:  config.DatasetsInMem,
-			DatasetsOnDisk: config.DatasetsOnDisk,
-		}, notify, noverify)
-		engine.SetThreads(-1) // Disable CPU mining
-		return engine
-	}
+// TODO 修改创建共识引擎
+func CreateConsensusEngine(chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
+	return alien.New(chainConfig.Alien, db)
 }
 
 // APIs return the collection of RPC services the ethereum package offers.
@@ -413,9 +388,9 @@ func (s *Ethereum) shouldPreserve(block *types.Block) bool {
 	// is A, F and G sign the block of round5 and reject the block of opponents
 	// and in the round6, the last available signer B is offline, the whole
 	// network is stuck.
-	if _, ok := s.engine.(*clique.Clique); ok {
-		return false
-	}
+	//if _, ok := s.engine.(*clique.Clique); ok {
+	//	return false
+	//}
 	return s.isLocalBlock(block)
 }
 
@@ -457,14 +432,14 @@ func (s *Ethereum) StartMining(threads int) error {
 			log.Error("Cannot start mining without etherbase", "err", err)
 			return fmt.Errorf("etherbase missing: %v", err)
 		}
-		if clique, ok := s.engine.(*clique.Clique); ok {
-			wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
-			if wallet == nil || err != nil {
-				log.Error("Etherbase account unavailable locally", "err", err)
-				return fmt.Errorf("signer missing: %v", err)
-			}
-			clique.Authorize(eb, wallet.SignData)
-		}
+		//if clique, ok := s.engine.(*clique.Clique); ok {
+		//	wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
+		//	if wallet == nil || err != nil {
+		//		log.Error("Etherbase account unavailable locally", "err", err)
+		//		return fmt.Errorf("signer missing: %v", err)
+		//	}
+		//	clique.Authorize(eb, wallet.SignData)
+		//}
 		// If mining is started, we can disable the transaction rejection mechanism
 		// introduced to speed sync times.
 		atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)

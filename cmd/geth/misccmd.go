@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"github.com/cloudcan/go-ethereum/cmd/utils"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/eth"
 	"github.com/cloudcan/go-ethereum/params"
 	"gopkg.in/urfave/cli.v1"
@@ -82,11 +81,11 @@ func makecache(ctx *cli.Context) error {
 	if len(args) != 2 {
 		utils.Fatalf(`Usage: geth makecache <block number> <outputdir>`)
 	}
-	block, err := strconv.ParseUint(args[0], 0, 64)
+	_, err := strconv.ParseUint(args[0], 0, 64)
 	if err != nil {
 		utils.Fatalf("Invalid block number: %v", err)
 	}
-	ethash.MakeCache(block, args[1])
+	//ethash.MakeCache(block, args[1])
 
 	return nil
 }
@@ -97,11 +96,11 @@ func makedag(ctx *cli.Context) error {
 	if len(args) != 2 {
 		utils.Fatalf(`Usage: geth makedag <block number> <outputdir>`)
 	}
-	block, err := strconv.ParseUint(args[0], 0, 64)
+	_, err := strconv.ParseUint(args[0], 0, 64)
 	if err != nil {
 		utils.Fatalf("Invalid block number: %v", err)
 	}
-	ethash.MakeDataset(block, args[1])
+	//ethash.MakeDataset(block, args[1])
 
 	return nil
 }

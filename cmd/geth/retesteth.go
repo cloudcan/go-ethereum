@@ -31,7 +31,6 @@ import (
 	"github.com/cloudcan/go-ethereum/common/hexutil"
 	"github.com/cloudcan/go-ethereum/common/math"
 	"github.com/cloudcan/go-ethereum/consensus"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/consensus/misc"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/core/rawdb"
@@ -383,16 +382,16 @@ func (api *RetestethAPI) SetChainParams(ctx context.Context, chainParams ChainPa
 
 	var inner consensus.Engine
 	switch chainParams.SealEngine {
-	case "NoProof", "NoReward":
-		inner = ethash.NewFaker()
-	case "Ethash":
-		inner = ethash.New(ethash.Config{
-			CacheDir:       "ethash",
-			CachesInMem:    2,
-			CachesOnDisk:   3,
-			DatasetsInMem:  1,
-			DatasetsOnDisk: 2,
-		}, nil, false)
+	//case "NoProof", "NoReward":
+	//	inner = ethash.NewFaker()
+	//case "Ethash":
+	//	inner = ethash.New(ethash.Config{
+	//		CacheDir:       "ethash",
+	//		CachesInMem:    2,
+	//		CachesOnDisk:   3,
+	//		DatasetsInMem:  1,
+	//		DatasetsOnDisk: 2,
+	//	}, nil, false)
 	default:
 		return false, fmt.Errorf("unrecognised seal engine: %s", chainParams.SealEngine)
 	}

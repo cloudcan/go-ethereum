@@ -31,8 +31,6 @@ import (
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/common/hexutil"
 	"github.com/cloudcan/go-ethereum/common/math"
-	"github.com/cloudcan/go-ethereum/consensus/clique"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/core/rawdb"
 	"github.com/cloudcan/go-ethereum/core/types"
@@ -1661,45 +1659,6 @@ func (api *PublicDebugAPI) GetBlockRlp(ctx context.Context, number uint64) (stri
 	return fmt.Sprintf("%x", encoded), nil
 }
 
-// TestSignCliqueBlock fetches the given block number, and attempts to sign it as a clique header with the
-// given address, returning the address of the recovered signature
-//
-// This is a temporary method to debug the externalsigner integration,
-// TODO: Remove this method when the integration is mature
-func (api *PublicDebugAPI) TestSignCliqueBlock(ctx context.Context, address common.Address, number uint64) (common.Address, error) {
-	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
-	if block == nil {
-		return common.Address{}, fmt.Errorf("block #%d not found", number)
-	}
-	header := block.Header()
-	header.Extra = make([]byte, 32+65)
-	encoded := clique.CliqueRLP(header)
-
-	// Look up the wallet containing the requested signer
-	account := accounts.Account{Address: address}
-	wallet, err := api.b.AccountManager().Find(account)
-	if err != nil {
-		return common.Address{}, err
-	}
-
-	signature, err := wallet.SignData(account, accounts.MimetypeClique, encoded)
-	if err != nil {
-		return common.Address{}, err
-	}
-	sealHash := clique.SealHash(header).Bytes()
-	log.Info("test signing of clique block",
-		"Sealhash", fmt.Sprintf("%x", sealHash),
-		"signature", fmt.Sprintf("%x", signature))
-	pubkey, err := crypto.Ecrecover(sealHash, signature)
-	if err != nil {
-		return common.Address{}, err
-	}
-	var signer common.Address
-	copy(signer[:], crypto.Keccak256(pubkey[1:])[12:])
-
-	return signer, nil
-}
-
 // PrintBlock retrieves a block and returns its pretty printed form.
 func (api *PublicDebugAPI) PrintBlock(ctx context.Context, number uint64) (string, error) {
 	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
@@ -1710,13 +1669,13 @@ func (api *PublicDebugAPI) PrintBlock(ctx context.Context, number uint64) (strin
 }
 
 // SeedHash retrieves the seed hash of a block.
-func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string, error) {
-	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
-	if block == nil {
-		return "", fmt.Errorf("block #%d not found", number)
-	}
-	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
-}
+//func (api *PublicDebugAPI) SeedHash(ctx context.Context, number uint64) (string, error) {
+//	block, _ := api.b.BlockByNumber(ctx, rpc.BlockNumber(number))
+//	if block == nil {
+//		return "", fmt.Errorf("block #%d not found", number)
+//	}
+//	return fmt.Sprintf("0x%x", ethash.SeedHash(number)), nil
+//}
 
 // PrivateDebugAPI is the collection of Ethereum APIs exposed over the private
 // debugging endpoint.
