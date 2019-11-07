@@ -525,7 +525,7 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		header *types.Header
 		td     *big.Int
 		txs    []txStats
-		uncles []*types.Header
+		//uncles []*types.Header
 	)
 	if s.eth != nil {
 		// Full nodes have all needed information available
@@ -539,7 +539,7 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		for i, tx := range block.Transactions() {
 			txs[i].Hash = tx.Hash()
 		}
-		uncles = block.Uncles()
+		//uncles = block.Uncles()
 	} else {
 		// Light nodes would need on-demand lookups for transactions/uncles, skip
 		if block != nil {
@@ -561,12 +561,12 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		Miner:      author,
 		GasUsed:    header.GasUsed,
 		GasLimit:   header.GasLimit,
-		Diff:       header.Difficulty.String(),
-		TotalDiff:  td.String(),
-		Txs:        txs,
-		TxHash:     header.TxHash,
-		Root:       header.Root,
-		Uncles:     uncles,
+		//Diff:       header.Difficulty.String(),
+		TotalDiff: td.String(),
+		Txs:       txs,
+		TxHash:    header.TxHash,
+		Root:      header.Root,
+		//Uncles:     uncles,
 	}
 }
 
@@ -684,7 +684,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	)
 	if s.eth != nil {
 		mining = s.eth.Miner().Mining()
-		hashrate = int(s.eth.Miner().HashRate())
+		//hashrate = int(s.eth.Miner().HashRate())
 
 		sync := s.eth.Downloader().Progress()
 		syncing = s.eth.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock

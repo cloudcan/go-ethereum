@@ -130,7 +130,7 @@ func (p *FakePeer) RequestBodies(hashes []common.Hash) error {
 		block := rawdb.ReadBlock(p.db, hash, *p.hc.GetBlockNumber(hash))
 
 		txs = append(txs, block.Transactions())
-		uncles = append(uncles, block.Uncles())
+		uncles = append(uncles)
 	}
 	p.dl.DeliverBodies(p.id, txs, uncles)
 	return nil

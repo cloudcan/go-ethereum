@@ -19,7 +19,6 @@ package utils
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -46,7 +45,6 @@ import (
 	"github.com/cloudcan/go-ethereum/eth/gasprice"
 	"github.com/cloudcan/go-ethereum/ethdb"
 	"github.com/cloudcan/go-ethereum/ethstats"
-	"github.com/cloudcan/go-ethereum/graphql"
 	"github.com/cloudcan/go-ethereum/les"
 	"github.com/cloudcan/go-ethereum/log"
 	"github.com/cloudcan/go-ethereum/metrics"
@@ -59,7 +57,6 @@ import (
 	"github.com/cloudcan/go-ethereum/p2p/nat"
 	"github.com/cloudcan/go-ethereum/p2p/netutil"
 	"github.com/cloudcan/go-ethereum/params"
-	"github.com/cloudcan/go-ethereum/rpc"
 	whisper "github.com/cloudcan/go-ethereum/whisper/whisperv6"
 	pcsclite "github.com/gballet/go-libpcsclite"
 	cli "gopkg.in/urfave/cli.v1"
@@ -1577,24 +1574,24 @@ func RegisterEthStatsService(stack *node.Node, url string) {
 }
 
 // RegisterGraphQLService is a utility function to construct a new service and register it against a node.
-func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
-	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Try to construct the GraphQL service backed by a full node
-		var ethServ *eth.Ethereum
-		if err := ctx.Service(&ethServ); err == nil {
-			return graphql.New(ethServ.APIBackend, endpoint, cors, vhosts, timeouts)
-		}
-		// Try to construct the GraphQL service backed by a light node
-		var lesServ *les.LightEthereum
-		if err := ctx.Service(&lesServ); err == nil {
-			return graphql.New(lesServ.ApiBackend, endpoint, cors, vhosts, timeouts)
-		}
-		// Well, this should not have happened, bail out
-		return nil, errors.New("no Ethereum service")
-	}); err != nil {
-		Fatalf("Failed to register the GraphQL service: %v", err)
-	}
-}
+//func RegisterGraphQLService(stack *node.Node, endpoint string, cors, vhosts []string, timeouts rpc.HTTPTimeouts) {
+//	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
+//		// Try to construct the GraphQL service backed by a full node
+//		var ethServ *eth.Ethereum
+//		if err := ctx.Service(&ethServ); err == nil {
+//			return graphql.New(ethServ.APIBackend, endpoint, cors, vhosts, timeouts)
+//		}
+//		// Try to construct the GraphQL service backed by a light node
+//		var lesServ *les.LightEthereum
+//		if err := ctx.Service(&lesServ); err == nil {
+//			return graphql.New(lesServ.ApiBackend, endpoint, cors, vhosts, timeouts)
+//		}
+//		// Well, this should not have happened, bail out
+//		return nil, errors.New("no Ethereum service")
+//	}); err != nil {
+//		Fatalf("Failed to register the GraphQL service: %v", err)
+//	}
+//}
 
 func SetupMetrics(ctx *cli.Context) {
 	if metrics.Enabled {

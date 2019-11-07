@@ -525,7 +525,7 @@ func (w *worker) taskLoop() {
 			// Interrupt previous sealing operation
 			interrupt()
 			stopCh, prev = make(chan struct{}), sealHash
-
+			// TODO what's means?
 			if w.skipSealHook != nil && w.skipSealHook(task) {
 				continue
 			}
@@ -636,9 +636,9 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 
 	// when 08 is processed ancestors contain 07 (quick block)
 	for _, ancestor := range w.chain.GetBlocksFromHash(parent.Hash(), 7) {
-		for _, uncle := range ancestor.Uncles() {
-			env.family.Add(uncle.Hash())
-		}
+		//for _, uncle := range ancestor.Uncles() {
+		//	env.family.Add(uncle.Hash())
+		//}
 		env.family.Add(ancestor.Hash())
 		env.ancestors.Add(ancestor.Hash())
 	}
@@ -694,7 +694,7 @@ func (w *worker) updateSnapshot() {
 	w.snapshotBlock = types.NewBlock(
 		w.current.header,
 		w.current.txs,
-		uncles,
+		//uncles,
 		w.current.receipts,
 	)
 
@@ -965,7 +965,7 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 		*receipts[i] = *l
 	}
 	s := w.current.state.Copy()
-	block, err := w.engine.FinalizeAndAssemble(w.chain, w.current.header, s, w.current.txs, uncles, w.current.receipts)
+	block, err := w.engine.FinalizeAndAssemble(w.chain, w.current.header, s, w.current.txs, w.current.receipts)
 	if err != nil {
 		return err
 	}

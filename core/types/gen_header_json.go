@@ -41,7 +41,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.TxHash = h.TxHash
 	enc.ReceiptHash = h.ReceiptHash
 	enc.Bloom = h.Bloom
-	enc.Difficulty = (*hexutil.Big)(h.Difficulty)
+	//enc.Difficulty = (*hexutil.Big)(h.Difficulty)
 	enc.Number = (*hexutil.Big)(h.Number)
 	enc.GasLimit = hexutil.Uint64(h.GasLimit)
 	enc.GasUsed = hexutil.Uint64(h.GasUsed)
@@ -104,10 +104,10 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'logsBloom' for Header")
 	}
 	h.Bloom = *dec.Bloom
-	if dec.Difficulty == nil {
-		return errors.New("missing required field 'difficulty' for Header")
-	}
-	h.Difficulty = (*big.Int)(dec.Difficulty)
+	//if dec.Difficulty == nil {
+	//	return errors.New("missing required field 'difficulty' for Header")
+	//}
+	//h.Difficulty = (*big.Int)(dec.Difficulty)
 	if dec.Number == nil {
 		return errors.New("missing required field 'number' for Header")
 	}

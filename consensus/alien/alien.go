@@ -33,6 +33,7 @@ import (
 	"github.com/cloudcan/go-ethereum/rlp"
 	"github.com/cloudcan/go-ethereum/rpc"
 	"golang.org/x/crypto/sha3"
+	"io"
 	"math/big"
 	"strings"
 	"sync"
@@ -154,16 +155,45 @@ type Alien struct {
 	lcsc       uint64              // Last confirmed side chain
 }
 
-func (a *Alien) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
-	uncles []*types.Header) {
+func (a *Alien) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction) {
 	panic("implement me")
 }
-func (a *Alien) SealHash(header *types.Header) common.Hash {
-	panic("implement me")
+func (a *Alien) SealHash(header *types.Header) (hash common.Hash) {
+	return SealHash(header)
 }
 
+func SealHash(header *types.Header) (hash common.Hash) {
+	hasher := sha3.NewLegacyKeccak256()
+	encodeSigHeader(hasher, header)
+	hasher.Sum(hash[:0])
+	return hash
+}
+func encodeSigHeader(w io.Writer, header *types.Header) {
+	err := rlp.Encode(w, []interface{}{
+		header.ParentHash,
+		header.UncleHash,
+		header.Coinbase,
+		header.Root,
+		header.TxHash,
+		header.ReceiptHash,
+		header.Bloom,
+		//header.Difficulty,
+		header.Number,
+		header.GasLimit,
+		header.GasUsed,
+		header.Time,
+		header.Extra[:len(header.Extra)-65], // Yes, this will panic if extra is too short
+		header.MixDigest,
+		header.Nonce,
+	})
+	if err != nil {
+		panic("can't encode: " + err.Error())
+	}
+}
+
+// 没有后台线程需要关闭
 func (a *Alien) Close() error {
-	panic("implement me")
+	return nil
 }
 
 // SignerFn is a signer callback function to request a hash to be signed by a
@@ -180,32 +210,6 @@ type SignTxFn func(accounts.Account, *types.Transaction, *big.Int) (*types.Trans
 // Note, the method requires the extra data to be at least 65 bytes, otherwise it
 // panics. This is done to avoid accidentally using both forms (signature present
 // or not), which could be abused to produce different hashes for the same header.
-func sigHash(header *types.Header) (hash common.Hash, err error) {
-	hasher := sha3.NewLegacyKeccak256()
-	if err := rlp.Encode(hasher, []interface{}{
-		header.ParentHash,
-		header.UncleHash,
-		header.Coinbase,
-		header.Root,
-		header.TxHash,
-		header.ReceiptHash,
-		header.Bloom,
-		header.Difficulty,
-		header.Number,
-		header.GasLimit,
-		header.GasUsed,
-		header.Time,
-		header.Extra[:len(header.Extra)-65], // Yes, this will panic if extra is too short
-		header.MixDigest,
-		header.Nonce,
-	}); err != nil {
-		return common.Hash{}, err
-	}
-
-	hasher.Sum(hash[:0])
-	return hash, nil
-}
-
 // ecrecover extracts the Ethereum account address from a signed header.
 func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, error) {
 	// If the signature's already cached, return that
@@ -220,11 +224,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 	signature := header.Extra[len(header.Extra)-extraSeal:]
 
 	// Recover the public key and the Ethereum address
-	headerSigHash, err := sigHash(header)
-	if err != nil {
-		return common.Address{}, err
-	}
-	pubkey, err := crypto.Ecrecover(headerSigHash.Bytes(), signature)
+	pubkey, err := crypto.Ecrecover(SealHash(header).Bytes(), signature)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -446,15 +446,6 @@ func (a *Alien) snapshot(chain consensus.ChainReader, number uint64, hash common
 	return snap, err
 }
 
-// VerifyUncles implements consensus.Engine, always returning an error for any
-// uncles as this consensus mechanism doesn't permit uncles.
-func (a *Alien) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
-	if len(block.Uncles()) > 0 {
-		return errUnclesNotAllowed
-	}
-	return nil
-}
-
 // VerifySeal implements consensus.Engine, checking whether the signature contained
 // in the header satisfies the consensus protocol requirements.
 func (a *Alien) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
@@ -600,12 +591,9 @@ func (a *Alien) verifySeal(chain consensus.ChainReader, header *types.Header, pa
 	return nil
 }
 
-// Prepare implements consensus.Engine, preparing all the consensus fields of the
-// header for running the transactions on top.
+// 初始化新块的头部
 func (a *Alien) Prepare(chain consensus.ChainReader, header *types.Header) error {
 
-	// Set the correct difficulty
-	header.Difficulty = new(big.Int).Set(defaultDifficulty)
 	// If now is later than genesis timestamp, skip prepare
 	if a.config.GenesisTimestamp < uint64(time.Now().Unix()) {
 		return nil
@@ -753,7 +741,7 @@ func (a *Alien) mcConfirmBlock(chain consensus.ChainReader, header *types.Header
 
 // Finalize implements consensus.Engine, ensuring no uncles are set, nor block
 // rewards given, and returns the final block.
-func (a *Alien) FinalizeAndAssemble(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+func (a *Alien) FinalizeAndAssemble(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, receipts []*types.Receipt) (*types.Block, error) {
 
 	number := header.Number.Uint64()
 
@@ -884,14 +872,14 @@ func (a *Alien) FinalizeAndAssemble(chain consensus.ChainReader, header *types.H
 	header.Extra = append(header.Extra, make([]byte, extraSeal)...)
 
 	// Set the correct difficulty
-	header.Difficulty = new(big.Int).Set(defaultDifficulty)
+	//header.Difficulty = new(big.Int).Set(defaultDifficulty)
 
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	// No uncle block
 	header.UncleHash = types.CalcUncleHash(nil)
 
 	// Assemble and return the final block for sealing
-	return types.NewBlock(header, txs, nil, receipts), nil
+	return types.NewBlock(header, txs, nil), nil
 }
 
 // Authorize injects a private key into the consensus engine to mint new blocks with.
@@ -1004,12 +992,8 @@ func (a *Alien) Seal(chain consensus.ChainReader, block *types.Block, results ch
 	}
 
 	// Sign all the things!
-	headerSigHash, err := sigHash(header)
-	if err != nil {
-		return err
-	}
 
-	sighash, err := signFn(accounts.Account{Address: signer}, headerSigHash.Bytes())
+	sighash, err := signFn(accounts.Account{Address: signer}, SealHash(header).Bytes())
 	if err != nil {
 		return err
 	}
@@ -1017,14 +1001,6 @@ func (a *Alien) Seal(chain consensus.ChainReader, block *types.Block, results ch
 	copy(header.Extra[len(header.Extra)-extraSeal:], sighash)
 	results <- block.WithSeal(header)
 	return nil
-}
-
-// CalcDifficulty is the difficulty adjustment algorithm. It returns the difficulty
-// that a new block should have based on the previous blocks in the chain and the
-// current signer.
-func (a *Alien) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
-
-	return new(big.Int).Set(defaultDifficulty)
 }
 
 // APIs implements consensus.Engine, returning the user facing RPC API to allow

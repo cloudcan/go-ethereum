@@ -193,7 +193,7 @@ func (lc *LightChain) ResetWithGenesisBlock(genesis *types.Block) {
 	defer lc.chainmu.Unlock()
 
 	// Prepare the genesis block and reinitialise the chain
-	rawdb.WriteTd(lc.chainDb, genesis.Hash(), genesis.NumberU64(), genesis.Difficulty())
+	//rawdb.WriteTd(lc.chainDb, genesis.Hash(), genesis.NumberU64(), genesis.Difficulty())
 	rawdb.WriteBlock(lc.chainDb, genesis)
 
 	lc.genesisBlock = genesis

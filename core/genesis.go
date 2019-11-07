@@ -274,21 +274,21 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 		Extra:      g.ExtraData,
 		GasLimit:   g.GasLimit,
 		GasUsed:    g.GasUsed,
-		Difficulty: g.Difficulty,
-		MixDigest:  g.Mixhash,
-		Coinbase:   g.Coinbase,
-		Root:       root,
+		//Difficulty: g.Difficulty,
+		MixDigest: g.Mixhash,
+		Coinbase:  g.Coinbase,
+		Root:      root,
 	}
 	if g.GasLimit == 0 {
 		head.GasLimit = params.GenesisGasLimit
 	}
-	if g.Difficulty == nil {
-		head.Difficulty = params.GenesisDifficulty
-	}
+	//if g.Difficulty == nil {
+	//	head.Difficulty = params.GenesisDifficulty
+	//}
 	statedb.Commit(false)
 	statedb.Database().TrieDB().Commit(root, true)
 
-	return types.NewBlock(head, nil, nil, nil)
+	return types.NewBlock(head, nil, nil)
 }
 
 // Commit writes the block and state of a genesis specification to the database.
