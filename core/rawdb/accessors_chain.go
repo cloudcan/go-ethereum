@@ -344,22 +344,22 @@ func ReadTd(db ethdb.Reader, hash common.Hash, number uint64) *big.Int {
 }
 
 // WriteTd stores the total difficulty of a block into the database.
-func WriteTd(db ethdb.KeyValueWriter, hash common.Hash, number uint64, td *big.Int) {
-	data, err := rlp.EncodeToBytes(td)
-	if err != nil {
-		log.Crit("Failed to RLP encode block total difficulty", "err", err)
-	}
-	if err := db.Put(headerTDKey(number, hash), data); err != nil {
-		log.Crit("Failed to store block total difficulty", "err", err)
-	}
-}
-
-// DeleteTd removes all block total difficulty data associated with a hash.
-func DeleteTd(db ethdb.KeyValueWriter, hash common.Hash, number uint64) {
-	if err := db.Delete(headerTDKey(number, hash)); err != nil {
-		log.Crit("Failed to delete block total difficulty", "err", err)
-	}
-}
+//func WriteTd(db ethdb.KeyValueWriter, hash common.Hash, number uint64, td *big.Int) {
+//	data, err := rlp.EncodeToBytes(td)
+//	if err != nil {
+//		log.Crit("Failed to RLP encode block total difficulty", "err", err)
+//	}
+//	if err := db.Put(headerTDKey(number, hash), data); err != nil {
+//		log.Crit("Failed to store block total difficulty", "err", err)
+//	}
+//}
+//
+//// DeleteTd removes all block total difficulty data associated with a hash.
+//func DeleteTd(db ethdb.KeyValueWriter, hash common.Hash, number uint64) {
+//	if err := db.Delete(headerTDKey(number, hash)); err != nil {
+//		log.Crit("Failed to delete block total difficulty", "err", err)
+//	}
+//}
 
 // HasReceipts verifies the existence of all the transaction receipts belonging
 // to a block.
@@ -520,7 +520,7 @@ func DeleteBlock(db ethdb.KeyValueWriter, hash common.Hash, number uint64) {
 	DeleteReceipts(db, hash, number)
 	DeleteHeader(db, hash, number)
 	DeleteBody(db, hash, number)
-	DeleteTd(db, hash, number)
+	//DeleteTd(db, hash, number)
 }
 
 // DeleteBlockWithoutNumber removes all block data associated with a hash, except
@@ -529,7 +529,7 @@ func DeleteBlockWithoutNumber(db ethdb.KeyValueWriter, hash common.Hash, number 
 	DeleteReceipts(db, hash, number)
 	deleteHeaderWithoutNumber(db, hash, number)
 	DeleteBody(db, hash, number)
-	DeleteTd(db, hash, number)
+	//DeleteTd(db, hash, number)
 }
 
 // FindCommonAncestor returns the last common ancestor of two block headers

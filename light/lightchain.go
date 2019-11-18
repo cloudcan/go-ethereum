@@ -107,14 +107,6 @@ func NewLightChain(odr OdrBackend, config *params.ChainConfig, engine consensus.
 	if err := bc.loadLastState(); err != nil {
 		return nil, err
 	}
-	// Check the current state of the block hashes and make sure that we do not have any of the bad blocks in our chain
-	for hash := range core.BadHashes {
-		if header := bc.GetHeaderByHash(hash); header != nil {
-			log.Error("Found bad hash, rewinding chain", "number", header.Number, "hash", header.ParentHash)
-			bc.SetHead(header.Number.Uint64() - 1)
-			log.Error("Chain rewind was successful, resuming normal operation")
-		}
-	}
 	return bc, nil
 }
 
@@ -474,9 +466,9 @@ func (lc *LightChain) SyncCheckpoint(ctx context.Context, checkpoint *params.Tru
 	head := lc.CurrentHeader().Number.Uint64()
 
 	latest := (checkpoint.SectionIndex+1)*lc.indexerConfig.ChtSize - 1
-	if clique := lc.hc.Config().Clique; clique != nil {
-		latest -= latest % clique.Epoch // epoch snapshot for clique
-	}
+	//if clique := lc.hc.Config().Clique; clique != nil {
+	//	latest -= latest % clique.Epoch // epoch snapshot for clique
+	//}
 	if head >= latest {
 		return true
 	}

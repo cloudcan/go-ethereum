@@ -54,8 +54,8 @@ var (
 		accounts.MimetypeTypedData,
 		0x01,
 	}
-	ApplicationClique = SigFormat{
-		accounts.MimetypeClique,
+	ApplicationDpos = SigFormat{
+		accounts.MimetypeDpos,
 		0x02,
 	}
 	TextPlain = SigFormat{
@@ -222,11 +222,11 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 			},
 		}
 		req = &SignDataRequest{ContentType: mediaType, Rawdata: []byte(msg), Messages: messages, Hash: sighash}
-	case ApplicationClique.Mime:
+	case ApplicationDpos.Mime:
 		// Clique is the Ethereum PoA standard
 		stringData, ok := data.(string)
 		if !ok {
-			return nil, useEthereumV, fmt.Errorf("input for %v must be an hex-encoded string", ApplicationClique.Mime)
+			return nil, useEthereumV, fmt.Errorf("input for %v must be an hex-encoded string", ApplicationDpos.Mime)
 		}
 		cliqueData, err := hexutil.Decode(stringData)
 		if err != nil {

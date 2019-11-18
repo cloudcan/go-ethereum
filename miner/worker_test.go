@@ -25,8 +25,6 @@ import (
 	"github.com/cloudcan/go-ethereum/accounts"
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/consensus"
-	"github.com/cloudcan/go-ethereum/consensus/clique"
-	"github.com/cloudcan/go-ethereum/consensus/ethash"
 	"github.com/cloudcan/go-ethereum/core"
 	"github.com/cloudcan/go-ethereum/core/rawdb"
 	"github.com/cloudcan/go-ethereum/core/types"

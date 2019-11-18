@@ -63,11 +63,7 @@ func (api *PublicEthereumAPI) Coinbase() (common.Address, error) {
 
 // ChainId is the EIP-155 replay-protection chain id for the current ethereum chain config.
 func (api *PublicEthereumAPI) ChainId() hexutil.Uint64 {
-	chainID := new(big.Int)
-	if config := api.e.blockchain.Config(); config.IsEIP155(api.e.blockchain.CurrentBlock().Number()) {
-		chainID = config.ChainID
-	}
-	return (hexutil.Uint64)(chainID.Uint64())
+	return (hexutil.Uint64)(api.e.blockchain.Config().ChainID.Uint64())
 }
 
 // PublicMinerAPI provides an API to control the miner.

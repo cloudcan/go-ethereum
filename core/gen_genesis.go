@@ -5,8 +5,6 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"math/big"
-
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/common/hexutil"
 	"github.com/cloudcan/go-ethereum/common/math"
@@ -32,13 +30,13 @@ func (g Genesis) MarshalJSON() ([]byte, error) {
 	}
 	var enc Genesis
 	enc.Config = g.Config
-	enc.Nonce = math.HexOrDecimal64(g.Nonce)
+	//enc.Nonce = math.HexOrDecimal64(g.Nonce)
 	enc.Timestamp = math.HexOrDecimal64(g.Timestamp)
 	enc.ExtraData = g.ExtraData
-	enc.GasLimit = math.HexOrDecimal64(g.GasLimit)
-	enc.Difficulty = (*math.HexOrDecimal256)(g.Difficulty)
-	enc.Mixhash = g.Mixhash
-	enc.Coinbase = g.Coinbase
+	//enc.GasLimit = math.HexOrDecimal64(g.GasLimit)
+	//enc.Difficulty = (*math.HexOrDecimal256)(g.Difficulty)
+	//enc.Mixhash = g.Mixhash
+	//enc.Coinbase = g.Coinbase
 	if g.Alloc != nil {
 		enc.Alloc = make(map[common.UnprefixedAddress]GenesisAccount, len(g.Alloc))
 		for k, v := range g.Alloc {
@@ -73,9 +71,9 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 	if dec.Config != nil {
 		g.Config = dec.Config
 	}
-	if dec.Nonce != nil {
-		g.Nonce = uint64(*dec.Nonce)
-	}
+	//if dec.Nonce != nil {
+	//	g.Nonce = uint64(*dec.Nonce)
+	//}
 	if dec.Timestamp != nil {
 		g.Timestamp = uint64(*dec.Timestamp)
 	}
@@ -85,17 +83,17 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 	if dec.GasLimit == nil {
 		return errors.New("missing required field 'gasLimit' for Genesis")
 	}
-	g.GasLimit = uint64(*dec.GasLimit)
-	if dec.Difficulty == nil {
-		return errors.New("missing required field 'difficulty' for Genesis")
-	}
-	g.Difficulty = (*big.Int)(dec.Difficulty)
-	if dec.Mixhash != nil {
-		g.Mixhash = *dec.Mixhash
-	}
-	if dec.Coinbase != nil {
-		g.Coinbase = *dec.Coinbase
-	}
+	//g.GasLimit = uint64(*dec.GasLimit)
+	//if dec.Difficulty == nil {
+	//	return errors.New("missing required field 'difficulty' for Genesis")
+	//}
+	//g.Difficulty = (*big.Int)(dec.Difficulty)
+	//if dec.Mixhash != nil {
+	//	g.Mixhash = *dec.Mixhash
+	//}
+	//if dec.Coinbase != nil {
+	//	g.Coinbase = *dec.Coinbase
+	//}
 	if dec.Alloc == nil {
 		return errors.New("missing required field 'alloc' for Genesis")
 	}

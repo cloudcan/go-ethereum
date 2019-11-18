@@ -367,3 +367,18 @@ func (ma *MixedcaseAddress) ValidChecksum() bool {
 func (ma *MixedcaseAddress) Original() string {
 	return ma.original
 }
+
+// signature
+type Signature struct {
+	V *big.Int `json:"v" gencodec:"required"`
+	R *big.Int `json:"r" gencodec:"required"`
+	S *big.Int `json:"s" gencodec:"required"`
+}
+
+func (sig *Signature) GetBytes() []byte {
+	bytes := make([]byte, 65)
+	copy(bytes[0:32], sig.V.Bytes())
+	copy(bytes[32:64], sig.R.Bytes())
+	copy(bytes[64:], sig.S.Bytes())
+	return bytes
+}

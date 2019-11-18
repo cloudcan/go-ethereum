@@ -228,14 +228,14 @@ func NewBlockChain(db ethdb.Database, cacheConfig *CacheConfig, chainConfig *par
 	if bc.genesisBlock == nil {
 		return nil, ErrNoGenesis
 	}
-
+	// init current block use nil
 	var nilBlock *types.Block
 	bc.currentBlock.Store(nilBlock)
 	bc.currentFastBlock.Store(nilBlock)
 
 	// Initialize the chain with ancient data if it isn't empty.
 	if bc.empty() {
-		rawdb.InitDatabaseFromFreezer(bc.db)
+		_ = rawdb.InitDatabaseFromFreezer(bc.db)
 	}
 
 	if err := bc.loadLastState(); err != nil {
@@ -244,8 +244,12 @@ func NewBlockChain(db ethdb.Database, cacheConfig *CacheConfig, chainConfig *par
 	// The first thing the node will do is reconstruct the verification data for
 	// the head block (ethash cache or clique voting snapshot). Might as well do
 	// it in advance.
-	bc.engine.VerifyHeader(bc, bc.CurrentHeader(), true)
+	err = bc.engine.VerifyHeader(bc, bc.CurrentHeader(), true)
+	if err != nil {
+		return nil, err
+	}
 
+	// TODO what's means?
 	if frozen, err := bc.db.Ancients(); err == nil && frozen > 0 {
 		var (
 			needRewind bool
@@ -277,19 +281,6 @@ func NewBlockChain(db ethdb.Database, cacheConfig *CacheConfig, chainConfig *par
 			}
 			bc.Rollback(hashes)
 			log.Warn("Truncate ancient chain", "from", previous, "to", low)
-		}
-	}
-	// Check the current state of the block hashes and make sure that we do not have any of the bad blocks in our chain
-	for hash := range BadHashes {
-		if header := bc.GetHeaderByHash(hash); header != nil {
-			// get the canonical block corresponding to the offending header's number
-			headerByNumber := bc.GetHeaderByNumber(header.Number.Uint64())
-			// make sure the headerByNumber (if present) is in our current canonical chain
-			if headerByNumber != nil && headerByNumber.Hash() == header.Hash() {
-				log.Error("Found bad hash, rewinding chain", "number", header.Number, "hash", header.ParentHash)
-				bc.SetHead(header.Number.Uint64() - 1)
-				log.Error("Chain rewind was successful, resuming normal operation")
-			}
 		}
 	}
 	// Take ownership of this particular state
@@ -372,13 +363,9 @@ func (bc *BlockChain) loadLastState() error {
 	// Issue a status log for the user
 	currentFastBlock := bc.CurrentFastBlock()
 
-	headerTd := bc.GetTd(currentHeader.Hash(), currentHeader.Number.Uint64())
-	blockTd := bc.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
-	fastTd := bc.GetTd(currentFastBlock.Hash(), currentFastBlock.NumberU64())
-
-	log.Info("Loaded most recent local header", "number", currentHeader.Number, "hash", currentHeader.Hash(), "td", headerTd, "age", common.PrettyAge(time.Unix(int64(currentHeader.Time), 0)))
-	log.Info("Loaded most recent local full block", "number", currentBlock.Number(), "hash", currentBlock.Hash(), "td", blockTd, "age", common.PrettyAge(time.Unix(int64(currentBlock.Time()), 0)))
-	log.Info("Loaded most recent local fast block", "number", currentFastBlock.Number(), "hash", currentFastBlock.Hash(), "td", fastTd, "age", common.PrettyAge(time.Unix(int64(currentFastBlock.Time()), 0)))
+	log.Info("Loaded most recent local header", "number", currentHeader.Number, "hash", currentHeader.Hash(), "age", common.PrettyAge(time.Unix(int64(currentHeader.Time), 0)))
+	log.Info("Loaded most recent local full block", "number", currentBlock.Number(), "hash", currentBlock.Hash(), "age", common.PrettyAge(time.Unix(int64(currentBlock.Time()), 0)))
+	log.Info("Loaded most recent local fast block", "number", currentFastBlock.Number(), "hash", currentFastBlock.Hash(), "age", common.PrettyAge(time.Unix(int64(currentFastBlock.Time()), 0)))
 
 	return nil
 }
@@ -1229,9 +1216,9 @@ func (bc *BlockChain) writeBlockWithoutState(block *types.Block, td *big.Int) (e
 	bc.wg.Add(1)
 	defer bc.wg.Done()
 
-	if err := bc.hc.WriteTd(block.Hash(), block.NumberU64(), td); err != nil {
-		return err
-	}
+	//if err := bc.hc.WriteTd(block.Hash(), block.NumberU64(), td); err != nil {
+	//	return err
+	//}
 	rawdb.WriteBlock(bc.db, block)
 
 	return nil
@@ -1270,24 +1257,9 @@ func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.
 func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.Receipt, state *state.StateDB) (status WriteStatus, err error) {
 	bc.wg.Add(1)
 	defer bc.wg.Done()
-
-	// Calculate the total difficulty of the block
-	//ptd := bc.GetTd(block.ParentHash(), block.NumberU64()-1)
-	//if ptd == nil {
-	//	return NonStatTy, consensus.ErrUnknownAncestor
-	//}
-	//// Make sure no inconsistent state is leaked during insertion
-	//currentBlock := bc.CurrentBlock()
-	//localTd := bc.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
-	//externTd := new(big.Int).Add(block.Difficulty(), ptd)
-	//
-	//// Irrelevant of the canonical status, write the block itself to the database
-	//if err := bc.hc.WriteTd(block.Hash(), block.NumberU64(), externTd); err != nil {
-	//	return NonStatTy, err
-	//}
 	rawdb.WriteBlock(bc.db, block)
 
-	root, err := state.Commit(bc.chainConfig.IsEIP158(block.Number()))
+	root, err := state.Commit(true)
 	if err != nil {
 		return NonStatTy, err
 	}
@@ -1383,9 +1355,10 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 	//} else {
 	//	status = SideStatTy
 	//}
-	//if err := batch.Write(); err != nil {
-	//	return NonStatTy, err
-	//}
+	status = CanonStatTy
+	if err := batch.Write(); err != nil {
+		return NonStatTy, err
+	}
 
 	// Set new head.
 	if status == CanonStatTy {
@@ -1567,11 +1540,6 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 			log.Debug("Premature abort during blocks processing")
 			break
 		}
-		// If the header is a banned one, straight out abort
-		if BadHashes[block.Hash()] {
-			bc.reportBlock(block, nil, ErrBlacklistedHash)
-			return it.index, events, coalescedLogs, ErrBlacklistedHash
-		}
 		// If the block is known (in the middle of the chain), it's a special case for
 		// Clique blocks where they can share state among each other, so importing an
 		// older block might complete the state of the subsequent one. In this case,
@@ -1579,9 +1547,6 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 		// its header and body was already in the database).
 		if err == ErrKnownBlock {
 			logger := log.Debug
-			if bc.chainConfig.Clique == nil {
-				logger = log.Warn
-			}
 			logger("Inserted known block", "number", block.Number(), "hash", block.Hash(),
 				/*"uncles", len(block.Uncles()),*/ "txs", len(block.Transactions()), "gas", block.GasUsed(),
 				"root", block.Root())

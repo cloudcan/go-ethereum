@@ -35,8 +35,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	}
 	var enc Header
 	enc.ParentHash = h.ParentHash
-	enc.UncleHash = h.UncleHash
-	enc.Coinbase = h.Coinbase
+	//enc.UncleHash = h.UncleHash
+	//enc.Coinbase = h.Coinbase
 	enc.Root = h.Root
 	enc.TxHash = h.TxHash
 	enc.ReceiptHash = h.ReceiptHash
@@ -47,8 +47,8 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.GasUsed = hexutil.Uint64(h.GasUsed)
 	enc.Time = hexutil.Uint64(h.Time)
 	enc.Extra = h.Extra
-	enc.MixDigest = h.MixDigest
-	enc.Nonce = h.Nonce
+	//enc.MixDigest = h.MixDigest
+	//enc.Nonce = h.Nonce
 	enc.Hash = h.Hash()
 	return json.Marshal(&enc)
 }
@@ -80,14 +80,10 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'parentHash' for Header")
 	}
 	h.ParentHash = *dec.ParentHash
-	if dec.UncleHash == nil {
-		return errors.New("missing required field 'sha3Uncles' for Header")
-	}
-	h.UncleHash = *dec.UncleHash
-	if dec.Coinbase == nil {
-		return errors.New("missing required field 'miner' for Header")
-	}
-	h.Coinbase = *dec.Coinbase
+	//if dec.Coinbase == nil {
+	//	return errors.New("missing required field 'miner' for Header")
+	//}
+	//h.Coinbase = *dec.Coinbase
 	if dec.Root == nil {
 		return errors.New("missing required field 'stateRoot' for Header")
 	}
@@ -128,11 +124,11 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'extraData' for Header")
 	}
 	h.Extra = *dec.Extra
-	if dec.MixDigest != nil {
-		h.MixDigest = *dec.MixDigest
-	}
-	if dec.Nonce != nil {
-		h.Nonce = *dec.Nonce
-	}
+	//if dec.MixDigest != nil {
+	//	h.MixDigest = *dec.MixDigest
+	//}
+	//if dec.Nonce != nil {
+	//	h.Nonce = *dec.Nonce
+	//}
 	return nil
 }

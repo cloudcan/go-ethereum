@@ -237,15 +237,11 @@ func (hc *HeaderChain) ValidateHeaderChain(chain []*types.Header, checkFreq int)
 	defer close(abort)
 
 	// Iterate over the headers and ensure they all check out
-	for i, header := range chain {
+	for i, _ := range chain {
 		// If the chain is terminating, stop processing blocks
 		if hc.procInterrupt() {
 			log.Debug("Premature abort during headers verification")
 			return 0, errors.New("aborted")
-		}
-		// If the header is a banned one, straight out abort
-		if BadHashes[header.Hash()] {
-			return i, ErrBlacklistedHash
 		}
 		// Otherwise wait for headers checks and ensure they pass
 		if err := <-results; err != nil {
@@ -398,11 +394,11 @@ func (hc *HeaderChain) GetTdByHash(hash common.Hash) *big.Int {
 
 // WriteTd stores a block's total difficulty into the database, also caching it
 // along the way.
-func (hc *HeaderChain) WriteTd(hash common.Hash, number uint64, td *big.Int) error {
-	rawdb.WriteTd(hc.chainDb, hash, number, td)
-	hc.tdCache.Add(hash, new(big.Int).Set(td))
-	return nil
-}
+//func (hc *HeaderChain) WriteTd(hash common.Hash, number uint64, td *big.Int) error {
+//	rawdb.WriteTd(hc.chainDb, hash, number, td)
+//	hc.tdCache.Add(hash, new(big.Int).Set(td))
+//	return nil
+//}
 
 // GetHeader retrieves a block header from the database by hash and number,
 // caching it if found.
@@ -512,7 +508,7 @@ func (hc *HeaderChain) SetHead(head uint64, updateFn UpdateHeadBlocksCallback, d
 		}
 		// Rewind header chain to new head.
 		rawdb.DeleteHeader(batch, hash, num)
-		rawdb.DeleteTd(batch, hash, num)
+		//rawdb.DeleteTd(batch, hash, num)
 		rawdb.DeleteCanonicalHash(batch, num)
 
 		hc.currentHeader.Store(parent)

@@ -173,8 +173,8 @@ func (gpo *Oracle) getBlockPrices(ctx context.Context, signer types.Signer, bloc
 	sort.Sort(transactionsByGasPrice(txs))
 
 	for _, tx := range txs {
-		sender, err := types.Sender(signer, tx)
-		if err == nil && sender != block.Coinbase() {
+		_, err := types.Sender(signer, tx)
+		if err == nil {
 			ch <- getBlockPricesResult{tx.GasPrice(), nil}
 			return
 		}

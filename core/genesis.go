@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cloudcan/go-ethereum/core/elect"
 	"math/big"
 	"strings"
 
@@ -46,16 +47,10 @@ var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
-	Config     *params.ChainConfig `json:"config"`
-	Nonce      uint64              `json:"nonce"`
-	Timestamp  uint64              `json:"timestamp"`
-	ExtraData  []byte              `json:"extraData"`
-	GasLimit   uint64              `json:"gasLimit"   gencodec:"required"`
-	Difficulty *big.Int            `json:"difficulty" gencodec:"required"`
-	Mixhash    common.Hash         `json:"mixHash"`
-	Coinbase   common.Address      `json:"coinbase"`
-	Alloc      GenesisAlloc        `json:"alloc"      gencodec:"required"`
-
+	Config    *params.ChainConfig `json:"config"`
+	Timestamp uint64              `json:"timestamp"`
+	ExtraData []byte              `json:"extraData"`
+	Alloc     GenesisAlloc        `json:"alloc"      gencodec:"required"`
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
 	Number     uint64      `json:"number"`
@@ -152,12 +147,12 @@ func (e *GenesisMismatchError) Error() string {
 //
 // The returned chain configuration is never nil.
 func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
-	return SetupGenesisBlockWithOverride(db, genesis, nil)
+	return SetupGenesisBlockWithOverride(db, genesis)
 }
 
-func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, overrideIstanbul *big.Int) (*params.ChainConfig, common.Hash, error) {
+func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
-		return params.AllEthashProtocolChanges, common.Hash{}, errGenesisNoConfig
+		return params.MainnetChainConfig, common.Hash{}, errGenesisNoConfig
 	}
 	// Just commit the new block if there is no stored genesis block.
 	stored := rawdb.ReadCanonicalHash(db, 0)
@@ -204,12 +199,6 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, override
 
 	// Get the existing chain configuration.
 	newcfg := genesis.configOrDefault(stored)
-	if overrideIstanbul != nil {
-		newcfg.IstanbulBlock = overrideIstanbul
-	}
-	if err := newcfg.CheckConfigForkOrder(); err != nil {
-		return newcfg, common.Hash{}, err
-	}
 	storedcfg := rawdb.ReadChainConfig(db, stored)
 	if storedcfg == nil {
 		log.Warn("Found genesis block without chain config")
@@ -229,10 +218,6 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, override
 	if height == nil {
 		return newcfg, stored, fmt.Errorf("missing block number for head header hash")
 	}
-	compatErr := storedcfg.CheckCompatible(newcfg, *height)
-	if compatErr != nil && *height != 0 && compatErr.RewindTo != 0 {
-		return newcfg, stored, compatErr
-	}
 	rawdb.WriteChainConfig(db, stored, newcfg)
 	return newcfg, stored, nil
 }
@@ -246,7 +231,7 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 	case ghash == params.TestnetGenesisHash:
 		return params.TestnetChainConfig
 	default:
-		return params.AllEthashProtocolChanges
+		return params.TestnetChainConfig
 	}
 }
 
@@ -256,6 +241,7 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 	if db == nil {
 		db = rawdb.NewMemoryDatabase()
 	}
+	// init state db
 	statedb, _ := state.New(common.Hash{}, state.NewDatabase(db))
 	for addr, account := range g.Alloc {
 		statedb.AddBalance(addr, account.Balance)
@@ -265,29 +251,30 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
+	// get state root hash
 	root := statedb.IntermediateRoot(false)
+	// init elect db
+	electdb, _ := elect.New(db, common.Hash{})
+	// init delegates
+	if g.Config.Dpos.Delegates != nil {
+		_ = electdb.AddDelegates(g.Config.Dpos.Delegates...)
+	}
+	// get candidate root hash
+	candidateRoot, _ := electdb.Commit()
+	// set header
 	head := &types.Header{
-		Number:     new(big.Int).SetUint64(g.Number),
-		Nonce:      types.EncodeNonce(g.Nonce),
-		Time:       g.Timestamp,
-		ParentHash: g.ParentHash,
-		Extra:      g.ExtraData,
-		GasLimit:   g.GasLimit,
-		GasUsed:    g.GasUsed,
-		//Difficulty: g.Difficulty,
-		MixDigest: g.Mixhash,
-		Coinbase:  g.Coinbase,
-		Root:      root,
+		Number:        new(big.Int).SetUint64(g.Number),
+		Time:          g.Timestamp,
+		ParentHash:    g.ParentHash,
+		Extra:         g.ExtraData,
+		GasLimit:      0,
+		GasUsed:       g.GasUsed,
+		Root:          root,
+		CandidateRoot: candidateRoot,
 	}
-	if g.GasLimit == 0 {
-		head.GasLimit = params.GenesisGasLimit
-	}
-	//if g.Difficulty == nil {
-	//	head.Difficulty = params.GenesisDifficulty
-	//}
+	// commit state db
 	statedb.Commit(false)
 	statedb.Database().TrieDB().Commit(root, true)
-
 	return types.NewBlock(head, nil, nil)
 }
 
@@ -300,12 +287,8 @@ func (g *Genesis) Commit(db ethdb.Database) (*types.Block, error) {
 	}
 	config := g.Config
 	if config == nil {
-		config = params.AllEthashProtocolChanges
+		config = params.MainnetChainConfig
 	}
-	//if err := config.CheckConfigForkOrder(); err != nil {
-	//	return nil, err
-	//}
-	rawdb.WriteTd(db, block.Hash(), block.NumberU64(), g.Difficulty)
 	rawdb.WriteBlock(db, block)
 	rawdb.WriteReceipts(db, block.Hash(), block.NumberU64(), nil)
 	rawdb.WriteCanonicalHash(db, block.Hash(), block.NumberU64())
@@ -334,23 +317,15 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 
 // DefaultGenesisBlock returns the Ethereum main net genesis block.
 func DefaultGenesisBlock() *Genesis {
-	mainnetAlloc := make(GenesisAlloc, 50)
-	for _, addr := range params.MainnetChainConfig.Alien.SelfVoteSigners {
-		balance, _ := new(big.Int).SetString("400000000000000000", 16)
-		mainnetAlloc[common.Address(addr)] = GenesisAccount{Balance: balance}
-	}
-
-	balance, _ := new(big.Int).SetString("26c566f0a2b77a000000000", 16)
-	mainnetAlloc[common.HexToAddress("t0bce13d77339971d1f5f00c38f523ba7ee44c95ed")] = GenesisAccount{Balance: balance}
-
 	return &Genesis{
-		Config:     params.MainnetChainConfig,
-		Timestamp:  1554004800,
-		Nonce:      0,
-		ExtraData:  hexutil.MustDecode("0x436f6769746f206572676f2073756d2e20457863657074206f7572206f776e2074686f75676874732c207468657265206973206e6f7468696e67206162736f6c7574656c7920696e206f757220706f7765722e20596f75206e656564206368616f7320696e20796f757220736f756c20746f206769766520626972746820746f20612064616e63696e6720737461722e20416c6561206961637461206573742e2020416c6c2063726564697420676f657320746f20746865207465616d3a2053686968616f2047756f2c2050656e67204c69752c205969204d6f2c204368617365204368616e672c2059697869616f2057616e672c20436520476f6e672c204865205a68616e672c2059756e6a69204d612c204a69652057752c205869616e6779616e672057616e672c204368656e687569204c752c204368656e6c69616e672057616e672c205765692050616e2c205175616e205975616e2c20577571696f6e67204c69752c204368616f204368656e2c204a756e6875612046616e2c20536875616e67205a68616f2c2059756e204c762c204a696e676a69652048652c204a696e68752044696e672c2059616e672048616e2c2053756d656920486f6e672c204c69616e67205a68616e672c204a75616e205a68656e672c204a69616e6a69616f204875616e672c204c756e205169616e2c205869616f7969204368656e2c205975666569205a68616e672c20516920416e2c205a6869636f6e67205975616e2c2059696e677975652053752c2048616e205a68616e672c204a69616e677765692057616e672c2046656970656e67204875616e672c205975746f6e6720446f6e672c2054656e67204d612c205169616e6c6569205368692c2059756e7869616f204c692c2052756971696e67205975652c205068696c6c6970204368756e2c205469616e7869616e672059752c204e61205a68616e672c2053687561692057616e672c2048616966656e672059616e2c204368656e6768616f2059696e2c2048656e67205a686f752c20536875616e67205a68616e672c204c696e7a68656e205869652c204b657368756e2058752c204a756e79692046616e672c204c696e66656e67204c692c20596f6e676c696e204c6920616e6420427269616e204368656f6e672e205370656369616c207468616e6b7320746f2053696d6f6e204b696d2c205279616e204b696d2c2053686f756a69205a686f752c205975616e205a68616e672c205468616e68204e677579656e2c204a69616e204361692c20486f6e677765692043616f2c205374656e204c61757265797373656e732e"),
-		GasLimit:   4700000,
-		Difficulty: big.NewInt(1),
-		Alloc:      mainnetAlloc,
+		Config:    params.MainnetChainConfig,
+		Timestamp: 1554004800,
+		Alloc: GenesisAlloc{
+			common.HexToAddress("0x5B01F4B6CFe8e7E5E7Af69e68D6b1a9B4042e1A1"): GenesisAccount{Balance: big.NewInt(10000e8)},
+			common.HexToAddress("0x9d00C7cc2cBAf6693a260F9fa136c9BFc740cD85"): GenesisAccount{Balance: big.NewInt(10000e8)},
+			common.HexToAddress("0xa3C84CC2e11406AA23380e3900667EAe6743cBe7"): GenesisAccount{Balance: big.NewInt(10000e8)},
+			common.HexToAddress("0x9e3dcCf6EE28177683b12CF7eF532b742B592fBa"): GenesisAccount{Balance: big.NewInt(10000e8)},
+		},
 	}
 }
 
@@ -358,15 +333,13 @@ func DefaultGenesisBlock() *Genesis {
 // be seeded with the
 func DeveloperGenesisBlock(period uint64, faucet common.Address) *Genesis {
 	// Override the default period to the user requested one
-	config := *params.AllCliqueProtocolChanges
-	config.Clique.Period = period
+	config := *params.TestnetChainConfig
+	//config.Clique.Period = period
 
 	// Assemble and return the genesis with the precompiles and faucet pre-funded
 	return &Genesis{
-		Config:     &config,
-		ExtraData:  append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
-		GasLimit:   6283185,
-		Difficulty: big.NewInt(1),
+		Config:    &config,
+		ExtraData: append(append(make([]byte, 32), faucet[:]...), make([]byte, crypto.SignatureLength)...),
 		Alloc: map[common.Address]GenesisAccount{
 			common.BytesToAddress([]byte{1}): {Balance: big.NewInt(1)}, // ECRecover
 			common.BytesToAddress([]byte{2}): {Balance: big.NewInt(1)}, // SHA256

@@ -22,7 +22,6 @@ import (
 
 	"github.com/cloudcan/go-ethereum/common"
 	"github.com/cloudcan/go-ethereum/consensus"
-	"github.com/cloudcan/go-ethereum/consensus/misc"
 	"github.com/cloudcan/go-ethereum/core/state"
 	"github.com/cloudcan/go-ethereum/core/types"
 	"github.com/cloudcan/go-ethereum/core/vm"
@@ -50,16 +49,16 @@ type BlockGen struct {
 
 // SetCoinbase sets the coinbase of the generated block.
 // It can be called at most once.
-func (b *BlockGen) SetCoinbase(addr common.Address) {
-	if b.gasPool != nil {
-		if len(b.txs) > 0 {
-			panic("coinbase must be set before adding transactions")
-		}
-		panic("coinbase can only be set once")
-	}
-	b.header.Coinbase = addr
-	b.gasPool = new(GasPool).AddGas(b.header.GasLimit)
-}
+//func (b *BlockGen) SetCoinbase(addr common.Address) {
+//	if b.gasPool != nil {
+//		if len(b.txs) > 0 {
+//			panic("coinbase must be set before adding transactions")
+//		}
+//		panic("coinbase can only be set once")
+//	}
+//	b.header.Coinbase = addr
+//	b.gasPool = new(GasPool).AddGas(b.header.GasLimit)
+//}
 
 // SetExtra sets the extra data field of the generated block.
 func (b *BlockGen) SetExtra(data []byte) {
@@ -67,9 +66,9 @@ func (b *BlockGen) SetExtra(data []byte) {
 }
 
 // SetNonce sets the nonce field of the generated block.
-func (b *BlockGen) SetNonce(nonce types.BlockNonce) {
-	b.header.Nonce = nonce
-}
+//func (b *BlockGen) SetNonce(nonce types.BlockNonce) {
+//	b.header.Nonce = nonce
+//}
 
 // SetDifficulty sets the difficulty field of the generated block. This method is
 // useful for Clique tests where the difficulty does not depend on time. For the
@@ -99,11 +98,11 @@ func (b *BlockGen) AddTx(tx *types.Transaction) {
 // added. If contract code relies on the BLOCKHASH instruction,
 // the block in chain will be returned.
 func (b *BlockGen) AddTxWithChain(bc *BlockChain, tx *types.Transaction) {
-	if b.gasPool == nil {
-		b.SetCoinbase(common.Address{})
-	}
+	//if b.gasPool == nil {
+	//	b.SetCoinbase(common.Address{})
+	//}
 	b.statedb.Prepare(tx.Hash(), common.Hash{}, len(b.txs))
-	receipt, err := ApplyTransaction(b.config, bc, &b.header.Coinbase, b.gasPool, b.statedb, b.header, tx, &b.header.GasUsed, vm.Config{})
+	receipt, err := ApplyTransaction(b.config, bc, b.gasPool, b.statedb, b.header, tx, &b.header.GasUsed, vm.Config{})
 	if err != nil {
 		panic(err)
 	}
@@ -186,27 +185,12 @@ func (b *BlockGen) OffsetTime(seconds int64) {
 // values. Inserting them into BlockChain requires use of FakePow or
 // a similar non-validating proof of work implementation.
 func GenerateChain(config *params.ChainConfig, parent *types.Block, engine consensus.Engine, db ethdb.Database, n int, gen func(int, *BlockGen)) ([]*types.Block, []types.Receipts) {
-	if config == nil {
-		config = params.TestChainConfig
-	}
 	blocks, receipts := make(types.Blocks, n), make([]types.Receipts, n)
 	chainreader := &fakeChainReader{config: config}
 	genblock := func(i int, parent *types.Block, statedb *state.StateDB) (*types.Block, types.Receipts) {
 		b := &BlockGen{i: i, chain: blocks, parent: parent, statedb: statedb, config: config, engine: engine}
 		b.header = makeHeader(chainreader, parent, statedb, b.engine)
 
-		// Mutate the state and block according to any hard-fork specs
-		if daoBlock := config.DAOForkBlock; daoBlock != nil {
-			limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
-			if b.header.Number.Cmp(daoBlock) >= 0 && b.header.Number.Cmp(limit) < 0 {
-				if config.DAOForkSupport {
-					b.header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
-				}
-			}
-		}
-		if config.DAOForkSupport && config.DAOForkBlock != nil && config.DAOForkBlock.Cmp(b.header.Number) == 0 {
-			misc.ApplyDAOHardFork(statedb)
-		}
 		// Execute any user modifications to the block
 		if gen != nil {
 			gen(i, b)
@@ -216,7 +200,7 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 			block, _ := b.engine.FinalizeAndAssemble(chainreader, b.header, statedb, b.txs, b.receipts)
 
 			// Write state changes to db
-			root, err := statedb.Commit(config.IsEIP158(b.header.Number))
+			root, err := statedb.Commit(true)
 			if err != nil {
 				panic(fmt.Sprintf("state write error: %v", err))
 			}
@@ -249,9 +233,9 @@ func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.S
 	}
 
 	return &types.Header{
-		Root:       state.IntermediateRoot(chain.Config().IsEIP158(parent.Number())),
+		Root:       state.IntermediateRoot(true),
 		ParentHash: parent.Hash(),
-		Coinbase:   parent.Coinbase(),
+		//Coinbase:   parent.Coinbase(),
 		//Difficulty: engine.CalcDifficulty(chain, time, &types.Header{
 		//	Number:     parent.Number(),
 		//	Time:       time - 10,
@@ -276,8 +260,8 @@ func makeHeaderChain(parent *types.Header, n int, engine consensus.Engine, db et
 
 // makeBlockChain creates a deterministic chain of blocks rooted at parent.
 func makeBlockChain(parent *types.Block, n int, engine consensus.Engine, db ethdb.Database, seed int) []*types.Block {
-	blocks, _ := GenerateChain(params.TestChainConfig, parent, engine, db, n, func(i int, b *BlockGen) {
-		b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
+	blocks, _ := GenerateChain(params.MainnetChainConfig, parent, engine, db, n, func(i int, b *BlockGen) {
+		//b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
 	})
 	return blocks
 }

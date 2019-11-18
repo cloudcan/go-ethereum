@@ -20,7 +20,7 @@ package eth
 import (
 	"errors"
 	"fmt"
-	"github.com/cloudcan/go-ethereum/consensus/alien"
+	"github.com/cloudcan/go-ethereum/consensus/dpos"
 	"math/big"
 	"runtime"
 	"sync"
@@ -135,7 +135,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Ethereum, error) {
 		return nil, err
 	}
 	// 设置创世块 TODO
-	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis, config.OverrideIstanbul)
+	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlockWithOverride(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
@@ -242,9 +242,14 @@ func makeExtraData(extra []byte) []byte {
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
-// TODO 修改创建共识引擎
 func CreateConsensusEngine(chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
-	return alien.New(chainConfig.Alien, db)
+	if chainConfig.Dpos != nil {
+		if err := chainConfig.Dpos.Check(); err != nil {
+			log.Crit("dpos 配置出错", "err", err)
+		}
+		return dpos.New(*chainConfig.Dpos, db)
+	}
+	return nil
 }
 
 // APIs return the collection of RPC services the ethereum package offers.
@@ -432,14 +437,14 @@ func (s *Ethereum) StartMining(threads int) error {
 			log.Error("Cannot start mining without etherbase", "err", err)
 			return fmt.Errorf("etherbase missing: %v", err)
 		}
-		//if clique, ok := s.engine.(*clique.Clique); ok {
-		//	wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
-		//	if wallet == nil || err != nil {
-		//		log.Error("Etherbase account unavailable locally", "err", err)
-		//		return fmt.Errorf("signer missing: %v", err)
-		//	}
-		//	clique.Authorize(eb, wallet.SignData)
-		//}
+		if dpos, ok := s.engine.(*dpos.Dpos); ok {
+			wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
+			if wallet == nil || err != nil {
+				log.Error("Etherbase account unavailable locally", "err", err)
+				return fmt.Errorf("signer missing: %v", err)
+			}
+			dpos.Authorize(eb, wallet.SignData)
+		}
 		// If mining is started, we can disable the transaction rejection mechanism
 		// introduced to speed sync times.
 		atomic.StoreUint32(&s.protocolManager.acceptTxs, 1)
